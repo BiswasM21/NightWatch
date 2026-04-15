@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NightWatch Dashboard</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff;
+            --critical: #f85149;
+            --high: #ff7b72;
+            --medium: #d29922;
+            --low: #58a6ff;
+            --info: #8b949e;
+            --green: #3fb950;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        nav .brand { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        nav .brand span { color: var(--text); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+        h1 { font-size: 1.4rem; margin-bottom: 1rem; color: var(--text); }
+        h2 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+        .card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem; }
+        .card .value { font-size: 1.8rem; font-weight: 700; }
+        .card a { color: inherit; text-decoration: none; }
+        .card a:hover { opacity: 0.85; }
+        .sev-critical { color: var(--critical); }
+        .sev-high { color: var(--high); }
+        .sev-medium { color: var(--medium); }
+        .sev-low { color: var(--low); }
+        .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .tab { padding: 0.5rem 1rem; cursor: pointer; color: var(--muted); font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .section { display: none; }
+        .section.active { display: block; }
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 8px; overflow: hidden; font-size: 0.85rem; }
+        th { background: var(--surface2); text-align: left; padding: 0.6rem 1rem; font-size: 0.7rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+        td { padding: 0.6rem 1rem; border-top: 1px solid var(--border); vertical-align: top; }
+        tr:first-child td { border-top: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .badge-critical { background: rgba(248,81,73,0.2); color: var(--critical); }
+        .badge-high { background: rgba(255,123,114,0.2); color: var(--high); }
+        .badge-medium { background: rgba(210,153,34,0.2); color: var(--medium); }
+        .badge-low { background: rgba(88,166,255,0.2); color: var(--low); }
+        .badge-info { background: rgba(139,148,158,0.2); color: var(--info); }
+        code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface2); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8em; }
+        .tag { display: inline-block; background: rgba(88,166,255,0.1); color: var(--accent); padding: 0.05rem 0.35rem; border-radius: 3px; font-size: 0.7rem; margin-right: 0.2rem; }
+        .loading { text-align: center; padding: 3rem; color: var(--muted); }
+        .error { background: rgba(248,81,73,0.1); border: 1px solid var(--critical); border-radius: 8px; padding: 1rem; color: var(--critical); }
+        .project-select { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; color: var(--text); font-size: 0.9rem; cursor: pointer; }
+        .no-data { text-align: center; padding: 2rem; color: var(--muted); }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="brand">Night<span>Watch</span></a>
+    <select id="projectSelect" class="project-select">
+        <option value="">Select Project</option>
+    </select>
+    <span style="margin-left:auto;color:var(--muted);font-size:0.8rem">v1.0.0</span>
+</nav>
+
+<div class="container">
+    <div class="grid" id="summaryGrid">
+        <div class="card"><div class="label">Subdomains</div><div class="value" id="statSubdomains">—</div></div>
+        <div class="card"><div class="label">Hosts Scanned</div><div class="value" id="statHosts">—</div></div>
+        <div class="card"><div class="label">Vulnerabilities</div><div class="value" id="statVulns">—</div></div>
+        <div class="card"><div class="label">Changes Detected</div><div class="value" id="statChanges">—</div></div>
+    </div>
+    <div class="grid" id="severityGrid" style="display:none">
+        <div class="card"><div class="label">Critical</div><div class="value sev-critical" id="sevCritical">0</div></div>
+        <div class="card"><div class="label">High</div><div class="value sev-high" id="sevHigh">0</div></div>
+        <div class="card"><div class="label">Medium</div><div class="value sev-medium" id="sevMedium">0</div></div>
+        <div class="card"><div class="label">Low</div><div class="value sev-low" id="sevLow">0</div></div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="subdomains">Subdomains</div>
+        <div class="tab" data-tab="hosts">Hosts</div>
+        <div class="tab" data-tab="vulnerabilities">Vulnerabilities</div>
+        <div class="tab" data-tab="changes">Change Log</div>
+    </div>
+
+    <div id="tabSubdomains" class="section active">
+        <div id="subdomainsContent"><div class="loading">Select a project to view subdomains</div></div>
+    </div>
+    <div id="tabHosts" class="section">
+        <div id="hostsContent"><div class="loading">Select a project to view hosts</div></div>
+    </div>
+    <div id="tabVulnerabilities" class="section">
+        <div id="vulnsContent"><div class="loading">Select a project to view vulnerabilities</div></div>
+    </div>
+    <div id="tabChanges" class="section">
+        <div id="changesContent"><div class="loading">Select a project to view changes</div></div>
+    </div>
+</div>
+
+<script>
+const API = '';
+let currentProject = null;
+
+async function api(url) {
+    const r = await fetch(API + url);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+}
+
+async function loadProjects() {
+    try {
+        const projects = await api('/api/projects');
+        const sel = document.getElementById('projectSelect');
+        sel.innerHTML = '<option value="">Select Project</option>';
+        projects.forEach(p => {
+            sel.innerHTML += `<option value="${p.id}">${p.name} (${p.target_domain})</option>`;
+        });
+        sel.addEventListener('change', e => { if (e.target.value) loadProject(e.target.value); });
+    } catch (e) { console.error(e); }
+}
+
+async function loadProject(id) {
+    currentProject = id;
+    document.getElementById('summaryGrid').style.display = 'grid';
+    try {
+        const summary = await api(`/api/project/${id}/summary`);
+        document.getElementById('statSubdomains').textContent = summary.subdomains;
+        document.getElementById('statHosts').textContent = summary.hosts;
+        document.getElementById('statVulns').textContent = summary.vulnerabilities;
+        document.getElementById('statChanges').textContent = summary.changes;
+
+        if (summary.vulnerabilities > 0) {
+            document.getElementById('severityGrid').style.display = 'grid';
+            document.getElementById('sevCritical').textContent = summary.severities.critical;
+            document.getElementById('sevHigh').textContent = summary.severities.high;
+            document.getElementById('sevMedium').textContent = summary.severities.medium;
+            document.getElementById('sevLow').textContent = summary.severities.low;
+        } else {
+            document.getElementById('severityGrid').style.display = 'none';
+        }
+
+        loadSubdomains(id);
+        loadHosts(id);
+        loadVulnerabilities(id);
+        loadChanges(id);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadSubdomains(id) {
+    try {
+        const subs = await api(`/api/project/${id}/subdomains`);
+        if (!subs.length) { document.getElementById('subdomainsContent').innerHTML = '<div class="no-data">No subdomains discovered</div>'; return; }
+        document.getElementById('subdomainsContent').innerHTML = `<table><thead><tr><th>Domain</th><th>IP</th><th>Source</th><th>Last Seen</th><th>Tags</th></tr></thead><tbody>` +
+            subs.map(s => `<tr><td><code>${s.domain}</code></td><td>${s.ip_address || '—'}</td><td>${s.source}</td><td>${s.last_seen ? new Date(s.last_seen).toLocaleString() : '—'}</td><td>${(s.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}</td></tr>`).join('') + '</tbody></table>';
+    } catch (e) { document.getElementById('subdomainsContent').innerHTML = `<div class="error">Error: ${e.message}</div>`; }
+}
+
+async function loadHosts(id) {
+    try {
+        const hosts = await api(`/api/project/${id}/hosts`);
+        if (!hosts.length) { document.getElementById('hostsContent').innerHTML = '<div class="no-data">No hosts scanned</div>'; return; }
+        document.getElementById('hostsContent').innerHTML = `<table><thead><tr><th>Host</th><th>Port</th><th>Service</th><th>Status</th><th>Title / Server</th><th>Technologies</th></tr></thead><tbody>` +
+            hosts.map(h => `<tr><td><code>${h.host}</code></td><td>${h.port || '—'}</td><td>${h.service || '—'}</td><td>${h.status_code || '—'}</td><td>${h.title || h.server_header || '—'}</td><td>${(h.technology||[]).slice(0,5).map(t => `<span class="tag">${t}</span>`).join('')}</td></tr>`).join('') + '</tbody></table>';
+    } catch (e) { document.getElementById('hostsContent').innerHTML = `<div class="error">Error: ${e.message}</div>`; }
+}
+
+async function loadVulnerabilities(id) {
+    try {
+        const vulns = await api(`/api/project/${id}/vulnerabilities`);
+        if (!vulns.length) { document.getElementById('vulnsContent').innerHTML = '<div class="no-data">No vulnerabilities found</div>'; return; }
+        document.getElementById('vulnsContent').innerHTML = `<table><thead><tr><th>Severity</th><th>CVE</th><th>Title</th><th>CVSS</th><th>Remediation</th></tr></thead><tbody>` +
+            vulns.map(v => `<tr><td><span class="badge badge-${v.severity}">${v.severity}</span></td><td><code>${v.cve_id || 'N/A'}</code></td><td>${v.title || '—'}</td><td>${v.cvss_score || '—'}</td><td><small>${v.remediation || '—'}</small></td></tr>`).join('') + '</tbody></table>';
+    } catch (e) { document.getElementById('vulnsContent').innerHTML = `<div class="error">Error: ${e.message}</div>`; }
+}
+
+async function loadChanges(id) {
+    try {
+        const changes = await api(`/api/project/${id}/changes`);
+        if (!changes.length) { document.getElementById('changesContent').innerHTML = '<div class="no-data">No changes detected</div>'; return; }
+        document.getElementById('changesContent').innerHTML = `<table><thead><tr><th>Time</th><th>Type</th><th>Severity</th><th>Description</th></tr></thead><tbody>` +
+            changes.map(c => `<tr><td>${c.detected_at ? new Date(c.detected_at).toLocaleString() : '—'}</td><td><code>${c.change_type}</code></td><td><span class="badge badge-${c.severity}">${c.severity}</span></td><td>${c.description}</td></tr>`).join('') + '</tbody></table>';
+    } catch (e) { document.getElementById('changesContent').innerHTML = `<div class="error">Error: ${e.message}</div>`; }
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+    });
+});
+
+loadProjects();
+</script>
+</body>
+</html>

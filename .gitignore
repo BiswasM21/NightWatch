@@ -51,7 +51,9 @@ nightwatch.db
 reports/
 output/
 *.json
-*.html
+
+# Allow dashboard templates (shipped with the project)
+!nightwatch/web/templates/*.html
 
 # API Keys — NEVER commit these
 .env
