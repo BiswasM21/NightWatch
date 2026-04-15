@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nightwatch-recon"
+version = "1.0.0"
+description = "NightWatch — AI-Powered Attack Surface Monitoring Framework for Security Researchers"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Biswas", email = "BiswasM21@users.noreply.github.com"}
+]
+keywords = [
+    "security", "reconnaissance", "pentest", "vulnerability-scanner",
+    "attack-surface", "subdomain-enumeration", "ctf", "bugbounty",
+    "osint", "ethical-hacking", "security-research", "monitoring"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Security",
+    "Topic :: Security :: Auditing",
+    "Topic :: Security :: Intrusion Detection",
+    "Topic :: System :: Monitoring",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.1.0",
+    "aiohttp>=3.9.0",
+    "dnspython>=2.4.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=4.9.0",
+    "jinja2>=3.1.0",
+    "rich>=13.7.0",
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.4.0",
+]
+api = [
+    "shodan>=1.31.0",
+    "virustotal-python>=2.0.0",
+]
+web = [
+    "flask>=3.0.0",
+    "flask-socketio>=5.3.0",
+]
+
+[project.scripts]
+nightwatch = "nightwatch.cli:main"
+nightwatchd = "nightwatch.web.dashboard:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nightwatch*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
