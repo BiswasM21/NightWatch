@@ -1,3 +1,6 @@
+# NightWatch — All-in-one Render requirements (standalone, no -r)
+# Use this instead of requirements.txt if -r doesn't resolve correctly on Render
+
 click>=8.1.0
 aiohttp>=3.9.0
 dnspython>=2.4.0

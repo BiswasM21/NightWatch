@@ -1,0 +1,79 @@
+# NightWatch Web Dashboard — Render Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+
+# ── Dashboard Service ────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: nightwatch-dashboard
+    runtime: python
+    region: oregon
+    plan: free
+
+    # Auto-deploy from GitHub when you push to main
+    github:
+      enabled: true
+      # IMPORTANT: Update this after creating the repo
+      repo: BiswasM21/NightWatch
+
+    # Build command — runs before startup
+    buildCommand: |
+      pip install -r requirements-standalone.txt
+      pip install -e .
+
+    # Start command — gunicorn handles the WSGI app
+    startCommand: gunicorn app:app -w 4 -b 0.0.0.0:$PORT --timeout 120
+
+    # Health checks
+    healthCheckPath: /health
+    readinessCheckPath: /readiness
+
+    # Environment variables
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: NIGHTWATCH_DB
+        # /data is Render's persistent disk mount point (only on paid plans)
+        # On Free plan, data resets on each deploy. See docs below.
+        value: /data/nightwatch.db
+
+    # Persistent disk (requires paid plan: Starter $7/mo or higher)
+    # Uncomment the disk block below when upgrading from Free plan:
+    # disk:
+    #   name: nightwatch-db
+    #   mountPath: /data
+    #   sizeGB: 1
+
+# ── NOTES ──────────────────────────────────────────────────────────────────────
+#
+# IMPORTANT — Free Plan Caveats:
+#
+# 1. **Ephemeral filesystem**: On the Free plan, all files (including the SQLite
+#    database) are wiped when the service sleeps after 15 min of inactivity.
+#    This means your scan data will be lost on the Free plan.
+#
+# 2. **Persistent storage**: Upgrade to Render's Starter plan ($7/mo) or higher
+#    and uncomment the `disk:` block above. This mounts a 1GB persistent disk
+#    at /data where your nightwatch.db will survive restarts and sleep cycles.
+#
+# 3. **Scan data workflow on Free plan**: You can still use the dashboard by
+#    running scans locally (`nightwatch scan ...`) which saves to your local
+#    ~/.NightWatch/nightwatch.db, then exporting/importing the DB file to
+#    Render's ephemeral storage. For production use, use the Starter plan.
+#
+# ── Deployment Steps ───────────────────────────────────────────────────────────
+#
+# 1. Fork or copy NightWatch repo to your GitHub account
+# 2. Create a render.yaml in the repo root (this file)
+# 3. Go to https://render.com → Blueprints → "Create Blueprint Instance"
+# 4. Connect your GitHub repo
+# 5. Render reads render.yaml and deploys automatically
+#
+# Or manually:
+# 1. Create a new Web Service on render.com
+# 2. Connect your GitHub repo
+# 3. Set root directory: NightWatch (if this is a subdirectory)
+# 4. Build command: pip install -r requirements.txt && pip install -e .
+# 5. Start command: gunicorn app:app -w 4 -b 0.0.0.0:$PORT
+#
