@@ -54,6 +54,38 @@ nightwatchd  # Starts web dashboard on http://localhost:5000
 
 ---
 
+## Deploy Dashboard to Render
+
+Deploy the web dashboard to [Render.com](https://render.com) for a live, publicly accessible URL. No credit card required on the free tier.
+
+### Option A — Blueprint (Recommended)
+
+1. Go to https://render.com → **Blueprints** → **Create Blueprint Instance**
+2. Connect your GitHub account and select `BiswasM21/NightWatch`
+3. Render reads `render.yaml` and deploys automatically
+4. Dashboard goes live at `https://nightwatch-dashboard.onrender.com`
+
+### Option B — Manual
+
+1. Create a new **Web Service** on https://dashboard.render.com
+2. Connect GitHub repo `BiswasM21/NightWatch`
+3. Set:
+   - **Build command:** `pip install -r requirements-web.txt && pip install -e .`
+   - **Start command:** `gunicorn app:app -w 4 -b 0.0.0.0:$PORT`
+   - **Health check path:** `/health`
+4. Deploy — dashboard available at your Render URL
+
+### Persistent Storage (Free vs Paid)
+
+| Plan | Storage | Price |
+|------|---------|-------|
+| Free | Ephemeral — resets after 15 min inactivity | $0 |
+| Starter | Persistent disk at `/data` | $7/mo |
+
+To enable persistent storage, upgrade to Starter and uncomment the `disk:` block in `render.yaml`.
+
+---
+
 ## Quick Start
 
 ### 1. Create a Project
@@ -148,8 +180,10 @@ NightWatch
 │   └── session.py     # Async database session management
 ├── utils/
 │   └── logging_utils.py  # Structured logging with Rich
-└── web/
-    └── dashboard.py   # Flask web dashboard
+├── web/
+│   └── dashboard.py   # Flask web dashboard
+├── app.py            # Production WSGI entry point (Render deploy)
+└── render.yaml       # Render Blueprint deployment config
 ```
 
 ---
@@ -165,7 +199,7 @@ NightWatch
 | Database | SQLAlchemy + aiosqlite | Persistent scan results |
 | UI | Rich | Terminal output formatting |
 | Reports | Jinja2 | HTML/Markdown generation |
-| Web Dashboard | Flask | Results visualization |
+| Web Dashboard | Flask + Gunicorn | Results visualization + production serving |
 
 ---
 
