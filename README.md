@@ -1,4 +1,4 @@
-# NightWatch — AI-Powered Attack Surface Monitoring Framework
+# NightWatch — Attack Surface Monitoring Framework
 
 > NightWatch is a modular, extensible reconnaissance and continuous security monitoring framework for security researchers, penetration testers, bug bounty hunters, and DevSecOps teams. It unifies subdomain enumeration, service fingerprinting, CVE correlation, and infrastructure drift detection into a single, orchestrated pipeline.
 
